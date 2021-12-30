@@ -9,6 +9,7 @@ import 'package:flutter_trip/model/grid_nav_model.dart';
 import 'package:flutter_trip/model/home_model.dart';
 import 'package:flutter_trip/model/sales_box_model.dart';
 import 'package:flutter_trip/widget/local_nav.dart';
+import 'package:flutter_trip/widget/sales_box.dart';
 
 import '../util/navigatorUtil.dart';
 import '../widget/grid_nav.dart';
@@ -29,7 +30,7 @@ class _HomePageState extends State<HomePage> {
   List<CommonModel> subNavList = [];
   List<CommonModel> localNavList = [];
   GridNavModel? gridNavModel;
-  SalesBoxModel? salesBoxModel;
+  SalesBoxModel? salesBox;
   bool _loading = true;
 
   double appBarAlpha = 0;
@@ -55,6 +56,7 @@ class _HomePageState extends State<HomePage> {
         subNavList = model.subNavList;
         gridNavModel = model.gridNav;
         bannerList = model.bannerList;
+        salesBox = model.salesBox;
       });
     } catch (e) {
       print(e);
@@ -122,6 +124,11 @@ class _HomePageState extends State<HomePage> {
                       Padding(
                         padding: EdgeInsets.fromLTRB(7, 0, 7, 5),
                         child:  subNavList==null?null:SubNav(subNavList: subNavList,),
+                      ),
+
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(7, 0, 7, 5),
+                        child:  salesBox==null?null:SalesBox(salesBox: salesBox!,),
                       ),
 
                     ],
