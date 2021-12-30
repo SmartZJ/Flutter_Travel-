@@ -5,8 +5,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_swiper_null_safety/flutter_swiper_null_safety.dart';
 import 'package:flutter_trip/dao/home_dao.dart';
 import 'package:flutter_trip/model/common_model.dart';
+import 'package:flutter_trip/model/grid_nav_model.dart';
 import 'package:flutter_trip/model/home_model.dart';
+import 'package:flutter_trip/model/sales_box_model.dart';
 import 'package:flutter_trip/widget/local_nav.dart';
+
+import '../util/navigatorUtil.dart';
+import '../widget/grid_nav.dart';
+import '../widget/hi_webview.dart';
+import '../widget/sub_nav.dart';
 
 const APPBAR_SCROLL_OFFSET = 120;
 
@@ -18,17 +25,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List _imageList = [
-    'https://img2.baidu.com/it/u=3551738197,3444677799&fm=26&fmt=auto',
-    'https://img2.baidu.com/it/u=441391251,3001957160&fm=26&fmt=auto',
-    'https://img0.baidu.com/it/u=1031554062,3956402395&fm=26&fmt=auto',
-    'https://img1.baidu.com/it/u=1597616700,2058841459&fm=26&fmt=auto',
-    'https://img2.baidu.com/it/u=567662724,1579594286&fm=26&fmt=auto',
-    'https://img1.baidu.com/it/u=2626291127,2949687932&fm=26&fmt=auto'
-  ];
-  double appBarAlpha = 0;
+  List<CommonModel> bannerList = [];
+  List<CommonModel> subNavList = [];
   List<CommonModel> localNavList = [];
-  String resultString = "";
+  GridNavModel? gridNavModel;
+  SalesBoxModel? salesBoxModel;
+  bool _loading = true;
+
+  double appBarAlpha = 0;
+
   var _textStyle = SystemUiOverlayStyle.light;
 
   _loadData() async {
@@ -45,7 +50,11 @@ class _HomePageState extends State<HomePage> {
     try {
       HomeModel model = await HomeDao.fetch();
       setState(() {
+
         localNavList = model.localNavList;
+        subNavList = model.subNavList;
+        gridNavModel = model.gridNav;
+        bannerList = model.bannerList;
       });
     } catch (e) {
       print(e);
@@ -73,6 +82,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadData();
+
   }
 
   @override
@@ -80,57 +90,90 @@ class _HomePageState extends State<HomePage> {
     return AnnotatedRegion(
       value: _textStyle,
       child: Scaffold(
-        backgroundColor: Color(0xfff2f2f2),
+          backgroundColor: Color(0xfff2f2f2),
           body: Stack(
-        children: [
-          MediaQuery.removePadding(
-            removeTop: true,
-            context: context,
-            child: NotificationListener(
-              onNotification: (scrollNotifaction) {
-                if (scrollNotifaction is ScrollUpdateNotification &&
-                    scrollNotifaction.depth == 0) {
-                  _onScroll(scrollNotifaction.metrics.pixels);
-                }
-                return true;
-              },
-              child: ListView(
-                children: [
-                  Container(
-                    height: 200,
-                    child: Swiper(
-                      itemCount: _imageList.length,
-                      autoplay: true,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Image.network(
-                          _imageList[index],
-                          fit: BoxFit.fill,
-                        );
-                      },
-                      pagination: SwiperPagination(),
-                    ),
+            children: [
+              MediaQuery.removePadding(
+                removeTop: true,
+                context: context,
+                child: NotificationListener(
+                  onNotification: (scrollNotifaction) {
+                    if (scrollNotifaction is ScrollUpdateNotification &&
+                        scrollNotifaction.depth == 0) {
+                      //滚动且是列表滚动的时候
+                      _onScroll(scrollNotifaction.metrics.pixels);
+                    }
+                    return true;
+                  },
+                  child: ListView(
+                    children: [
+
+                     _banner,
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(7, 5, 7, 5),
+                        child: LocalNav(localNavList: localNavList),
+                      ),
+
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(7, 0, 7, 5),
+                        child:  gridNavModel==null?null:GridNav(gridNavModel: gridNavModel!),
+                      ),
+
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(7, 0, 7, 5),
+                        child:  subNavList==null?null:SubNav(subNavList: subNavList,),
+                      ),
+
+                    ],
                   ),
-                  Padding(padding: EdgeInsets.fromLTRB(7, 5, 7, 5),
-                  child: LocalNav(localNavList: localNavList),)
-                ],
-              ),
-            ),
-          ),
-          Opacity(
-            opacity: appBarAlpha,
-            child: Container(
-              height: 80,
-              decoration: BoxDecoration(color: Colors.white),
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 20),
-                  child: Text('首页'),
                 ),
               ),
-            ),
-          )
-        ],
-      )),
+              Opacity(
+                opacity: appBarAlpha,
+                child: Container(
+                  height: 80,
+                  decoration: BoxDecoration(color: Colors.white),
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 20),
+                      child: Text('首页'),
+                    ),
+                  ),
+                ),
+              )
+            ],
+          )),
     );
   }
+
+  Widget get _banner{
+    return  Container(
+      height: 200,
+      child: bannerList.length==0?null:Swiper(
+        index: 0,
+        itemCount: bannerList.length,
+        autoplay: true,
+        itemBuilder: (BuildContext context, int index) {
+          return GestureDetector(
+            onTap: (){
+              CommonModel model = bannerList[index];
+              NavigatorUtil.push(
+                  context,
+                  HiWebView(
+                      url: model.url,
+                      title: model.title,
+                      hideAppBar: model.hideAppBar));
+            },
+            child: Image.network(
+              bannerList[index].icon!,
+              fit: BoxFit.fill,
+            ),
+          );
+        },
+        pagination: SwiperPagination(),
+        controller: SwiperController(),
+      ),
+    );
+  }
+
 }
