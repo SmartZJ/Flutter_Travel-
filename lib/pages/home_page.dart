@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_swiper_null_safety/flutter_swiper_null_safety.dart';
 import 'package:flutter_trip/dao/home_dao.dart';
+import 'package:flutter_trip/model/common_model.dart';
 import 'package:flutter_trip/model/home_model.dart';
-
+import 'package:flutter_trip/widget/local_nav.dart';
 
 const APPBAR_SCROLL_OFFSET = 120;
 
@@ -26,10 +27,11 @@ class _HomePageState extends State<HomePage> {
     'https://img1.baidu.com/it/u=2626291127,2949687932&fm=26&fmt=auto'
   ];
   double appBarAlpha = 0;
+  List<CommonModel> localNavList = [];
   String resultString = "";
   var _textStyle = SystemUiOverlayStyle.light;
 
-  _loadData() async{
+  _loadData() async {
     // HomeDao.fetch().then((result){
     //   setState(() {
     //     resultString = json.encode(result);
@@ -40,18 +42,16 @@ class _HomePageState extends State<HomePage> {
     //   });
     // });
 
-    try{
+    try {
       HomeModel model = await HomeDao.fetch();
       setState(() {
-        resultString = json.encode(model);
+        localNavList = model.localNavList;
       });
-    }catch(e){
-      setState(() {
-        resultString = e.toString();
-      });
+    } catch (e) {
+      print(e);
     }
-
   }
+
   _onScroll(offset) {
     double alpha = offset / APPBAR_SCROLL_OFFSET;
     if (alpha < 0) {
@@ -61,21 +61,18 @@ class _HomePageState extends State<HomePage> {
     }
     setState(() {
       appBarAlpha = alpha;
-      if(alpha>0.5){
+      if (alpha > 0.5) {
         _textStyle = SystemUiOverlayStyle.dark;
-      }else{
+      } else {
         _textStyle = SystemUiOverlayStyle.light;
       }
     });
-    
   }
-
 
   @override
   void initState() {
-      super.initState();
-      _loadData();
-
+    super.initState();
+    _loadData();
   }
 
   @override
@@ -83,6 +80,7 @@ class _HomePageState extends State<HomePage> {
     return AnnotatedRegion(
       value: _textStyle,
       child: Scaffold(
+        backgroundColor: Color(0xfff2f2f2),
           body: Stack(
         children: [
           MediaQuery.removePadding(
@@ -112,11 +110,8 @@ class _HomePageState extends State<HomePage> {
                       pagination: SwiperPagination(),
                     ),
                   ),
-                  Container(
-                    child: ListTile(
-                      title: Text(resultString),
-                    ),
-                  ),
+                  Padding(padding: EdgeInsets.fromLTRB(7, 5, 7, 5),
+                  child: LocalNav(localNavList: localNavList),)
                 ],
               ),
             ),
