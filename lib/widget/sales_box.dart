@@ -58,7 +58,7 @@ class SalesBox extends StatelessWidget {
                       HiWebView(url: salesBox.moreUrl, title: '更多活动'),
                     );
                   },
-                  child: Text('获取更多福利',style: TextStyle(fontSize: 12),
+                  child: Text('获取更多福利',style: TextStyle(fontSize: 12,color: Colors.white),
                   ),
                 ),
               )

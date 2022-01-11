@@ -28,10 +28,15 @@ class _TabNavigatorState extends State<TabNavigator> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageView(
+        onPageChanged: (index){
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         controller: _controller,
         children: const [
           HomePage(),
-          SearchPage(),
+          SearchPage(hideLeft: true,hint: '输入想要搜索的内容',),
           TravelPage(),
           MyPage()],
       ),
